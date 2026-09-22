@@ -1,0 +1,16 @@
+/* Dashboard Core Layout */
+.dashboard-layout {
+  display: flex;
+  flex-direction: row;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.dashboard-main-content {
+  flex: 1;
+  background-color: #ffffff;
+  padding: 24px 28px;
+  overflow-y: auto;
+  min-height: 100vh;
+}

@@ -1,0 +1,18 @@
+{
+  "name": "antarctic-station-backend",
+  "version": "1.0.0",
+  "description": "Express.js REST API server connecting MySQL 8.4 antarctic_station_db with remote IoT dashboard",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node seed/seedData.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mysql2": "^3.12.0"
+  }
+}
