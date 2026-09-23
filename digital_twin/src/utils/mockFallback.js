@@ -15,10 +15,9 @@ const generateTimeseries = (hours = 24, stepMinutes = 60) => {
 export const getWeatherData = (stationCode) => {
   const timestamps = generateTimeseries(24, 60);
   const isMaitri = stationCode === 'MTR';
-  const isBharti = stationCode === 'BHR';
 
-  const baseTemp = isMaitri ? -22.5 : isBharti ? -18.0 : -28.4;
-  const basePressure = isMaitri ? 985.2 : isBharti ? 992.5 : 975.0;
+  const baseTemp = isMaitri ? -22.5 : -18.0;
+  const basePressure = isMaitri ? 985.2 : 992.5;
 
   const rows = timestamps.map((time, idx) => ({
     recorded_at: time,
@@ -47,12 +46,11 @@ export const getWeatherData = (stationCode) => {
 export const getEnergyFuelData = (stationCode) => {
   const timestamps = generateTimeseries(24, 60);
   const isMaitri = stationCode === 'MTR';
-  const isBharti = stationCode === 'BHR';
 
-  const baseDieselPower = isMaitri ? 120.0 : isBharti ? 180.0 : 45.0;
-  const baseSolarPower = isBharti ? 65.0 : isMaitri ? 40.0 : 10.0;
-  const baseWindPower = isMaitri ? 85.0 : isBharti ? 50.0 : 95.0;
-  const baseFuelQty = isMaitri ? 45000.0 : isBharti ? 72000.0 : 18000.0;
+  const baseDieselPower = isMaitri ? 120.0 : 180.0;
+  const baseSolarPower = isMaitri ? 40.0 : 65.0;
+  const baseWindPower = isMaitri ? 85.0 : 50.0;
+  const baseFuelQty = isMaitri ? 45000.0 : 72000.0;
 
   const rows = timestamps.map((time, idx) => {
     const solarFactor = idx >= 6 && idx <= 18 ? Math.sin(((idx - 6) / 12) * Math.PI) : 0;
@@ -156,27 +154,78 @@ export const getInventoryData = (stationCode) => {
 };
 
 export const getAlertData = (stationCode) => {
-  const timestamps = generateTimeseries(24, 60);
-
-  const rows = timestamps.map((time, idx) => ({
-    alert_id: idx + 1,
-    recorded_at: time,
-    active_alerts: Math.floor(Math.abs(Math.sin(idx / 2) * 5)),
-    acknowledged_alerts: Math.floor(Math.abs(Math.cos(idx / 3) * 8)),
-    resolved_alerts: Math.floor(10 + Math.sin(idx / 4) * 6),
-    critical_severity: idx % 5 === 0 ? 1 : 0
-  }));
+  const alertsList = [
+    {
+      alert_id: 101,
+      created_at: '2026-09-22 18:25:00',
+      severity: 'critical',
+      alert_type: 'High Wind Velocity',
+      parameter: 'wind_speed_mps',
+      current_value: '34.2 m/s',
+      threshold: '> 30.0 m/s',
+      message: 'Severe blizzard warning. Wind speed exceeded critical threshold at station sensors.',
+      status: 'active'
+    },
+    {
+      alert_id: 102,
+      created_at: '2026-09-22 17:50:12',
+      severity: 'warning',
+      alert_type: 'Fuel Reserve Threshold',
+      parameter: 'quantity',
+      current_value: '24,500 L',
+      threshold: '< 25,000 L',
+      message: 'Jet A-1 fuel tank volume dropped below designated minimum threshold requirement.',
+      status: 'active'
+    },
+    {
+      alert_id: 103,
+      created_at: '2026-09-22 16:15:40',
+      severity: 'emergency',
+      alert_type: 'Genset Voltage Drop',
+      parameter: 'diesel_gen_kw',
+      current_value: '88.5 kW',
+      threshold: '< 100.0 kW',
+      message: 'Main diesel generator #1 experienced unexpected output drop. Backup microgrid engaged.',
+      status: 'acknowledged'
+    },
+    {
+      alert_id: 104,
+      created_at: '2026-09-22 14:30:00',
+      severity: 'info',
+      alert_type: 'Routine Telemetry Sync',
+      parameter: 'sync_status',
+      current_value: 'Synced',
+      threshold: 'N/A',
+      message: 'Automated satellite telemetry packet sync completed successfully.',
+      status: 'resolved'
+    },
+    {
+      alert_id: 105,
+      created_at: '2026-09-22 12:10:05',
+      severity: 'warning',
+      alert_type: 'HVAC Temperature Spike',
+      parameter: 'temperature_c',
+      current_value: '-14.8 °C',
+      threshold: '> -16.0 °C',
+      message: 'Habitation block heating loop temperature variation detected.',
+      status: 'resolved'
+    }
+  ];
 
   return {
     table: 'alerts',
     station_code: stationCode,
     columns: [
-      { key: 'recorded_at', name: 'Timestamp (UTC)', type: 'datetime' },
-      { key: 'active_alerts', name: 'Active Alerts', unit: 'alerts', color: '#ef4444', axis: 0 },
-      { key: 'acknowledged_alerts', name: 'Acknowledged', unit: 'alerts', color: '#f59e0b', axis: 0 },
-      { key: 'resolved_alerts', name: 'Resolved Alerts', unit: 'alerts', color: '#10b981', axis: 0 },
-      { key: 'critical_severity', name: 'Critical Emergency Flags', unit: 'flags', color: '#8b5cf6', axis: 1 }
+      { key: 'alert_id', name: 'Alert ID', type: 'number' },
+      { key: 'created_at', name: 'Created At (UTC)', type: 'datetime' },
+      { key: 'severity', name: 'Severity', type: 'badge' },
+      { key: 'alert_type', name: 'Alert Type', type: 'string' },
+      { key: 'parameter', name: 'Parameter', type: 'string' },
+      { key: 'current_value', name: 'Current Val', type: 'string' },
+      { key: 'threshold', name: 'Threshold', type: 'string' },
+      { key: 'message', name: 'Message Description', type: 'string' },
+      { key: 'status', name: 'Status', type: 'badge' }
     ],
-    rows
+    rows: alertsList
   };
 };

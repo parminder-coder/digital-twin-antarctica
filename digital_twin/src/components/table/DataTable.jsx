@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './dataTable.css';
 
-export default function DataTable({ dataset }) {
+export default function DataTable({ dataset, isAlertLog = false }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
@@ -47,12 +47,14 @@ export default function DataTable({ dataset }) {
   };
 
   return (
-    <div className="table-card-container">
+    <div className={`table-card-container ${isAlertLog ? 'alert-log-view' : ''}`}>
       <div className="table-header-bar">
         <div className="table-title-group">
-          <h3 className="table-title">DATABSE TELEMETRY RECORDS</h3>
+          <h3 className="table-title">
+            {isAlertLog ? 'SYSTEM ANOMALY & ALERT LOGS' : 'DATABASE TELEMETRY RECORDS'}
+          </h3>
           <span className="table-subtitle">
-            Table: <code className="db-code">{table}</code> • {filteredRows.length} total rows
+            Table: <code className="db-code">{table}</code> • {filteredRows.length} total records
           </span>
         </div>
 
@@ -61,7 +63,7 @@ export default function DataTable({ dataset }) {
             <span className="search-icon">🔍</span>
             <input
               type="text"
-              placeholder="Search telemetry..."
+              placeholder={isAlertLog ? "Search alerts..." : "Search telemetry..."}
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -100,7 +102,7 @@ export default function DataTable({ dataset }) {
               paginatedRows.map((row, idx) => {
                 const globalIndex = startIndex + idx + 1;
                 const isLowStock = row.low_stock_flag === 1;
-                const isCriticalAlert = row.critical_severity > 0;
+                const isCriticalAlert = row.severity === 'critical' || row.severity === 'emergency';
 
                 return (
                   <tr 
@@ -111,6 +113,7 @@ export default function DataTable({ dataset }) {
                     {columns.map((col) => {
                       const val = row[col.key];
 
+                      // Stock flag badge
                       if (col.key === 'low_stock_flag') {
                         return (
                           <td key={col.key}>
@@ -121,8 +124,42 @@ export default function DataTable({ dataset }) {
                         );
                       }
 
+                      // Severity badge
+                      if (col.key === 'severity') {
+                        const sevClass = 
+                          val === 'emergency' || val === 'critical' ? 'badge-danger' :
+                          val === 'warning' ? 'badge-warning' : 'badge-info';
+                        return (
+                          <td key={col.key}>
+                            <span className={`badge-pill ${sevClass}`}>
+                              {String(val).toUpperCase()}
+                            </span>
+                          </td>
+                        );
+                      }
+
+                      // Status badge
+                      if (col.key === 'status') {
+                        const stClass = 
+                          val === 'active' ? 'badge-danger' :
+                          val === 'acknowledged' ? 'badge-warning' : 'badge-success';
+                        return (
+                          <td key={col.key}>
+                            <span className={`badge-pill ${stClass}`}>
+                              {String(val).toUpperCase()}
+                            </span>
+                          </td>
+                        );
+                      }
+
                       return (
-                        <td key={col.key} className={col.type === 'datetime' ? 'td-time' : ''}>
+                        <td 
+                          key={col.key} 
+                          className={`
+                            ${col.type === 'datetime' ? 'td-time' : ''} 
+                            ${col.key === 'message' ? 'td-message' : ''}
+                          `}
+                        >
                           {val !== undefined && val !== null ? String(val) : '—'}
                         </td>
                       );
